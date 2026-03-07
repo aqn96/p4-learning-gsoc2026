@@ -38,3 +38,17 @@
 ## Result
 - h1 ping h2: success
 - pingall: all hosts can reach each other across the full pod-topo topology
+
+## Food for Thought
+
+### How would you enhance the program to respond to ARP requests?
+ARP is its own protocol separate from IPv4 with etherType 0x0806. I'd need to define a new arp_t header, add a parser state that triggers on that etherType, extract the ARP fields, and create a table that matches ARP requests and generates replies with the correct MAC for the requested IP. Right now the tutorial avoids this entirely by hardcoding static ARP entries on the hosts so the switches never deal with ARP.
+
+### How would you support traceroute?
+You don't need a new field as traceroute already uses TTL which we have. The sender sends packets with TTL=1, first switch decrements to 0 and should reply with ICMP "time exceeded." Then sender sends TTL=2, second switch does the same, and so on. What's missing is logic to detect TTL hitting 0 and sending back an ICMP reply instead of just dropping the packet. Right now we decrement TTL but never check if it reaches 0.
+
+### How would you support next hops?
+Right now there's only one next hop per destination IP. A real router supports multiple next hops for load balancing or redundancy. You'd use ECMP (Equal-Cost Multi-Path) — multiple egress ports per table entry and a hash of packet fields (src IP, dst IP, protocol) to spread traffic across paths.
+
+### Is this enough to replace a router?
+Not even close. We're missing ARP handling, ICMP (ping replies, TTL exceeded, destination unreachable), ACLs for security, NAT, IPv6, dynamic routing protocols, QoS, multicast, fragmentation, and rate limiting. This is the most basic static forwarding — a real router handles dozens of protocols and edge cases on top of this.
