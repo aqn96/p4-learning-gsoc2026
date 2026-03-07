@@ -47,8 +47,8 @@ This is **not** the GSoC project itself. The actual project work would happen in
 ### Phase 1: Environment & Foundations
 - [x] Set up VirtualBox VM (Ubuntu 24.04 ARM64 on Apple Silicon M3 Pro)
 - [x] Install P4 development tools (p4c 1.2.5.10, BMv2 1.15.0, Mininet)
-- [ ] Complete Basic Forwarding tutorial
-- [ ] Complete Basic Tunneling tutorial
+- [x] Complete Basic Forwarding tutorial
+- [x] Complete Basic Tunneling tutorial
 - [ ] Complete additional tutorials (ECN, Firewall, Source Routing)
 
 ### Phase 2: Project Exploration
