@@ -47,7 +47,7 @@ make run compiles basic_tunnel.p4 and loads it on all switches. They all run the
 - `ternary` — bitmask match, most flexible
 
 ### P4 is Case Sensitive
-`hdr.myTunnel` and `hdr.mytunnel` are different. `standard_metadata` vs `standard_metadata_t` — one is the instance, the other is the type. Got burned by this a few times.
+`hdr.myTunnel` and `hdr.mytunnel` are different. `standard_metadata` vs `standard_metadata_t`... one is the instance, the other is the type. Got burned by this a few times and made a lot of issues.
 
 ## Testing
 All three test cases worked:
@@ -63,3 +63,4 @@ All three test cases worked:
 - Case sensitivity in P4 will get you. `hdr.myTunnel` vs `hdr.mytunnel`, `standard_metadata` vs `standard_metadata_t`. The _t is the type, without _t is the instance. Same as class vs object.
 - The control plane JSON files are where the actual forwarding rules live. Same P4 program on every switch, different JSON rules per switch because they're in different positions in the topology.
 - To make this more realistic, switches should add/remove tunnel headers instead of hosts. Ingress switch maps destination IP to dst_id and adds the header with `setValid()`. Egress switch recognizes it's the last hop and strips the header with `setInvalid()`. Transit switches just forward on dst_id. The original IP packet stays untouched inside the tunnel the whole time. This is basically how MPLS works in production.
+
