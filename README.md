@@ -63,9 +63,9 @@ This is **not** the GSoC project itself. The actual project work would happen in
 - [ ] Document findings and results
 
 ### Phase 4: Application
-- [ ] Draft GSoC proposal
-- [ ] Email mentor (Peng Qian) with draft attached
-- [ ] Join P4 Zulip #gsoc channel
+- [x] Draft GSoC proposal
+- [x] Email mentor (Peng Qian) with draft attached
+- [x] Join P4 Zulip #gsoc channel
 - [ ] Submit final application through GSoC website
 
 ## Dev Environment
