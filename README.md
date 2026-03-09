@@ -53,14 +53,14 @@ This is **not** the GSoC project itself. The actual project work would happen in
 
 ### Phase 2: Project Exploration
 - [x] Read Planter paper (ACM SIGCOMM CCR 2024)
-- [ ] Study Planter user manual and codebase
+- [x] Study Planter user manual and codebase
 - [ ] Explore P4Pi platform and documentation
 - [ ] Understand p4c-dpdk backend
 
 ### Phase 3: Qualification Task
-- [ ] Complete end-to-end Planter workflow on BMv2
+- [x] Complete end-to-end Planter workflow on BMv2
 - [ ] Submit PR to a p4lang repository
-- [ ] Document findings and results
+- [x] Document findings and results
 
 ### Phase 4: Application
 - [x] Draft GSoC proposal
