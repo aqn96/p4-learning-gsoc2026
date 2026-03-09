@@ -83,6 +83,6 @@ This is **not** the GSoC project itself. The actual project work would happen in
 - [Planter](https://github.com/In-Network-Machine-Learning/Planter)
 - [P4Pi](https://github.com/p4lang/p4pi)
 - [p4c-dpdk Backend](https://github.com/p4lang/p4c/tree/main/backends/dpdk)
-- [Planter Paper (SIGCOMM CCR 2024)](https://dl.acm.org/doi/10.1145/3672200.3673870)
+- [Planter Paper (SIGCOMM CCR 2024)](https://dl.acm.org/doi/10.1145/3687230.3687232)
 - [P4 Zulip](https://p4lang.zulipchat.com)
 - [GSoC Application Instructions](https://github.com/p4lang/gsoc/blob/main/2026/application_instructions.md)
