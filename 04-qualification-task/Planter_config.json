@@ -65,7 +65,7 @@
     "test config": {
         "type of test": "classification",
         "port": "eth0",
-        "sudo password": "p4"
+        "sudo password": "<your password>"
     },
     "target config": {
         "architecture": "v1model",
