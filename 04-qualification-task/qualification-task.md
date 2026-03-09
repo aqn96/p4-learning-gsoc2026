@@ -13,6 +13,7 @@ This documents the completion of the alternative qualification task for GSoC 202
 - **Software Switch:** simple_switch_grpc v1.15.0 (BMv2, build 6c7c93e5)
 - **Network Emulator:** Mininet 2.3.1b4
 - **Framework:** Planter v0.1.0
+- **Access:** SSH into VM via port forwarding (port 2222) with key-based authentication for efficient terminal workflow
 
 ### Dependencies
 
@@ -159,8 +160,16 @@ Process <python-based test>  cost 0.0624s
 
 6. **Missing `p4.tmp` module**: The `p4runtime` pip package doesn't include `p4.tmp.p4config_pb2`. Copied from the venv's p4 package to `/usr/local/lib/python3.12/dist-packages/p4/tmp/`.
 
-## Files Generated
+## Files Included
 
-- `~/Planter/P4/DT_standard_classification_Iris.p4` — the generated P4 program
-- `~/Planter/src/configs/Planter_config.json` — full run configuration
-- `~/Planter/src/logs/log.json` — classification results log
+- `DT_standard_classification_Iris.p4` — the generated P4 program
+- `Planter_config.json` — full run configuration (password redacted)
+- `log.json` — classification results log
+
+## Screenshots
+
+- `screenshots/config.png` — Planter configuration prompt with all selections
+- `screenshots/matrix1_tables.png` — scikit-learn training results and M/A table generation
+- `screenshots/matrix2.png` — simulated M/A pipeline test results
+- `screenshots/compilation_deployment.png` — P4 compilation and Mininet topology setup
+- `screenshots/matrix3_test_finished.png` — BMv2 switch inference results with Test Finished
