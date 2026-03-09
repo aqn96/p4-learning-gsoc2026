@@ -52,7 +52,7 @@ This is **not** the GSoC project itself. The actual project work would happen in
 - [ ] Complete additional tutorials (ECN, Firewall, Source Routing)
 
 ### Phase 2: Project Exploration
-- [ ] Read Planter paper (ACM SIGCOMM CCR 2024)
+- [x] Read Planter paper (ACM SIGCOMM CCR 2024)
 - [ ] Study Planter user manual and codebase
 - [ ] Explore P4Pi platform and documentation
 - [ ] Understand p4c-dpdk backend
