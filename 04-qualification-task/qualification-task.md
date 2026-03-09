@@ -61,6 +61,8 @@ Planter loaded the Iris dataset from `~/Data/Iris/Iris.csv` and split it into tr
                               test x: (45, 4)  test y: (45,)
 ```
 
+![Config and Setup](screenshots/01_config_prompt_setup.png)
+
 ### Step 2: Model Training (Matrix 1 — scikit-learn baseline)
 
 Planter trained a Decision Tree classifier using scikit-learn. This is the baseline Python model performance:
@@ -72,6 +74,8 @@ Planter trained a Decision Tree classifier using scikit-learn. This is the basel
            2     0.9167    0.9167    0.9167        12
     accuracy                         0.9556        45
 ```
+
+![Matrix 1 and Table Generation](screenshots/02_matrix1_scikit-learn_base.png)
 
 ### Step 3: Model Conversion (M/A Table Generation)
 
@@ -97,6 +101,8 @@ acc to sklearn: 1.0 (perfect match with baseline)
 
 The M/A table entries produce identical results to the original scikit-learn model.
 
+![Matrix 2 Simulated Pipeline](screenshots/03_matrix2_simulatedm:a_pipeline.png)
+
 ### Step 5: P4 Code Generation
 
 Planter generated the complete P4 program (`DT_standard_classification_Iris.p4`) targeting v1model architecture, along with control plane table loading scripts.
@@ -112,6 +118,8 @@ p4c-bm2-ss --p4v 16 --p4runtime-files build/DT_standard_classification_Iris.p4.p
 
 Compilation succeeded with only a minor unused action warning and a deprecation notice about `.txt` format.
 
+![Compilation and Deployment](screenshots/04_compiling_deployment.png)
+
 ### Step 7: Functional Testing on BMv2 (Matrix 3 — actual switch inference)
 
 All 45 test samples were sent as packets through the BMv2 switch. The switch parsed each packet, extracted features, performed inference using the M/A tables, and returned predictions:
@@ -126,6 +134,8 @@ Switch model 45th prediction: ... acc to sklearn: 1.0,
            2     0.9167    0.9167    0.9167        12
     accuracy                         0.9556        45
 ```
+
+![Matrix 3 Final Test Result](screenshots/05_matrix3_finaltest_result.png)
 
 ## Results Summary
 
@@ -162,14 +172,6 @@ Process <python-based test>  cost 0.0624s
 
 ## Files Included
 
-- `DT_standard_classification_Iris.p4` — the generated P4 program
-- `Planter_config.json` — full run configuration (password redacted)
-- `log.json` — classification results log
-
-## Screenshots
-
-- `screenshots/config.png` — Planter configuration prompt with all selections
-- `screenshots/matrix1_tables.png` — scikit-learn training results and M/A table generation
-- `screenshots/matrix2.png` — simulated M/A pipeline test results
-- `screenshots/compilation_deployment.png` — P4 compilation and Mininet topology setup
-- `screenshots/matrix3_test_finished.png` — BMv2 switch inference results with Test Finished
+- [`DT_standard_classification_Iris.p4`](DT_standard_classification_Iris.p4) — the generated P4 program
+- [`Planter_config.json`](Planter_config.json) — full run configuration (password redacted)
+- [`log.json`](log.json) — classification results log
