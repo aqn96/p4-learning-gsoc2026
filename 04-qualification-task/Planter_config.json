@@ -1,0 +1,76 @@
+{
+    "directory config": {
+        "data": "/home/p4/Data",
+        "work": "/home/p4/Planter"
+    },
+    "model config": {
+        "model": "DT",
+        "type": "4",
+        "number of depth": 4,
+        "max number of leaf nodes": 1000,
+        "number of classes": 3,
+        "test table": "y"
+    },
+    "data config": {
+        "dataset": "Iris",
+        "number of features": 4,
+        "testing mode": "y"
+    },
+    "timer log": {
+        "load data": {
+            "start": 1773085304.0928617,
+            "end": 1773085304.0966175
+        },
+        "train model": {
+            "start": 1773085309.898097,
+            "end": 1773085309.9094334
+        },
+        "convert model": {
+            "start": 1773085309.909435,
+            "end": 1773085309.9236145
+        },
+        "python-based test": {
+            "start": 1773085311.4700787,
+            "end": 1773085311.5324442
+        }
+    },
+    "p4 config": {
+        "model": "DT",
+        "number of features": 4,
+        "number of classes": 3,
+        "table name": "LPM_Table.json",
+        "code table size": 13,
+        "default lable": 1,
+        "width of feature": [
+            8,
+            7,
+            8,
+            6
+        ],
+        "width of code": [
+            1.0,
+            2.0,
+            3.0,
+            3.0
+        ],
+        "used columns": [
+            1,
+            2,
+            5,
+            4
+        ],
+        "width of probability": 7,
+        "width of result": 8
+    },
+    "test config": {
+        "type of test": "classification",
+        "port": "eth0",
+        "sudo password": "p4"
+    },
+    "target config": {
+        "architecture": "v1model",
+        "use case": "standard_classification",
+        "device": "bmv2",
+        "type": "software"
+    }
+}
