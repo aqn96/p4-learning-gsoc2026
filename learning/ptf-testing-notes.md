@@ -6,43 +6,125 @@ Notes from building automated tests for the p4lang/tutorials exercises.
 
 PTF (Packet Test Framework) is a Python-based testing framework for data plane programs. It lets you send packets into a software switch, then verify what comes out the other side. Think of it as unit testing but for network behavior — you craft a specific input packet, send it, and assert that the output packet has the right headers, lands on the right port, or gets dropped as expected.
 
-## How a PTF Test File is Structured
+## The Full Testing Flow
 
-A PTF test for a P4 program follows a consistent pattern:
+When you run `make test`, here's what happens end to end:
+
+```
+make test
+  → calls runptf.sh
+    → creates veth pairs (virtual ethernet interfaces)
+    → compiles solution P4 program with p4c
+    → starts simple_switch_grpc (BMv2 software switch)
+    → runs PTF tests (Python)
+      → each test:
+        1. P4InfoHelper reads compiled metadata (translates names → numeric IDs)
+        2. Connects to switch over gRPC
+        3. Claims master controller role (MasterArbitrationUpdate)
+        4. Pushes compiled P4 program onto the switch
+        5. Writes table entries (match-action rules)
+        6. Crafts a packet and sends it into a port
+        7. Asserts what comes out (correct port, correct headers, or dropped)
+        8. Closes connections
+    → kills the switch process
+    → deletes veth interfaces
+    → done
+```
+
+One command, fully self-contained. No external dependencies.
+
+## How a PTF Test File is Structured
 
 ### 1. Imports and Dependencies
 
 ```python
+import os
+import sys
 import ptf
-import ptf.testutils as testutils
+import ptf.testutils as tu
 from ptf.base_tests import BaseTest
-from p4runtime_sh.shell import setup, teardown, TableEntry
+
+# Import p4runtime_lib from the tutorials repo
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                 '../../../utils/'))
+import p4runtime_lib.bmv2
+import p4runtime_lib.helper
+from p4runtime_lib.switch import ShutdownAllSwitchConnections
 ```
 
-- `ptf` — the core test framework, gives you packet send/receive/verify primitives
-- `ptf.testutils` — helper functions like `simple_tcp_packet()` to craft common packet types and `send_packet()` / `verify_packet()` to push packets through the switch and check output
-- `BaseTest` — the parent class all tests inherit from. Handles setup and teardown of the test environment
-- `p4runtime_sh` — P4Runtime shell utilities for programming table entries into the switch at runtime
+- `ptf` — core test framework, gives you packet send/receive/verify primitives
+- `ptf.testutils` — helpers like `simple_tcp_packet()` to craft packets and `send_packet()` / `verify_packets()` to push packets through the switch and check output
+- `BaseTest` — parent class all tests inherit from. Handles setup and teardown
+- `p4runtime_lib.helper` — `P4InfoHelper` reads the p4info file and translates human-readable names (like `MyIngress.ipv4_lpm`) into the numeric IDs that P4Runtime uses internally
+- `p4runtime_lib.bmv2` — `Bmv2SwitchConnection` manages the gRPC connection to the software switch
+- `ShutdownAllSwitchConnections` — cleanup function that closes all open gRPC connections
+- `sys.path.append` — needed because `p4runtime_lib` lives in `utils/` which is three directories up from the test file. Python only imports from directories it knows about, so you have to explicitly add the path
 
 ### 2. Logger Setup
 
 ```python
 import logging
-logger = logging.getLogger('BasicFwdTest')
-logger.addHandler(logging.StreamHandler())
+logger = logging.getLogger(None)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
 ```
 
-Logging matters because when a test fails, you need to see what packet was sent, what was expected, and what actually came out. Without logs, debugging test failures is guesswork.
+When a test fails, you need to see what packet was sent, what was expected, and what actually came out. Without logs, debugging test failures is guesswork.
 
-### 3. Test Class
+### 3. Test Base Class — setUp and tearDown
 
-Each test is a class that inherits from `BaseTest`. The class has:
+```python
+class BasicFwdTest(BaseTest):
+    def setUp(self):
+        # Step 1: Create P4InfoHelper — reads compiled metadata,
+        # translates human-readable table/action names to numeric IDs
+        self.p4info_helper = p4runtime_lib.helper.P4InfoHelper(p4info_txt_fname)
 
-- `setUp()` — runs before the test. This is where you program table entries into the switch using P4Runtime. For example, adding an IPv4 forwarding rule that maps a destination IP to an output port with specific MAC rewrites.
-- The test method itself — crafts an input packet, sends it into a specific port, and verifies the output.
-- Assertions — check that the packet arrived on the expected port, with the expected header modifications (MAC rewrite, TTL decrement, etc.), or that it was dropped when it should have been.
+        # Step 2: Connect to the switch over gRPC
+        self.sw = p4runtime_lib.bmv2.Bmv2SwitchConnection(
+            name='s1',
+            address=grpc_addr,
+            device_id=0)
 
-### 4. The Tests Themselves
+        # Step 3: Claim master controller role
+        # P4Runtime supports multiple controllers, but only the master
+        # can write. This isn't about which switch is "master" in the
+        # network — it's about which controller has write access.
+        self.sw.MasterArbitrationUpdate()
+
+        # Step 4: Push the compiled P4 program onto the switch
+        # Two things get sent: the p4info (metadata) and the BMv2 JSON (the program)
+        self.sw.SetForwardingPipelineConfig(
+            p4info=self.p4info_helper.p4info,
+            bmv2_json_file_path=p4prog_binary_fname)
+
+    def tearDown(self):
+        ShutdownAllSwitchConnections()
+```
+
+Each test class inherits from this base. setUp runs before every test, tearDown runs after. The switch gets a fresh connection and program load for each test.
+
+### 4. Helper Function — Writing Table Entries
+
+```python
+def add_ipv4_lpm_entry(self, ipv4_addr_str, prefix_len, dst_mac_str, port):
+    # buildTableEntry creates a protobuf message — a structured binary
+    # object that gets serialized and sent over gRPC to the switch
+    table_entry = self.p4info_helper.buildTableEntry(
+        table_name='MyIngress.ipv4_lpm',
+        match_fields={'hdr.ipv4.dstAddr': (ipv4_addr_str, prefix_len)},
+        action_name='MyIngress.ipv4_forward',
+        action_params={'dstAddr': dst_mac_str, 'port': port})
+
+    # WriteTableEntry sends the protobuf to the switch, which installs the rule
+    self.sw.WriteTableEntry(table_entry)
+```
+
+This is a class method (takes `self`) because it needs `self.p4info_helper` to build the entry and `self.sw` to write it. The match field is a tuple `(address, prefix_len)` because LPM matches need both.
+
+### 5. The Tests Themselves
 
 Each test targets one specific behavior of the P4 program:
 
@@ -50,18 +132,20 @@ Each test targets one specific behavior of the P4 program:
 - **FwdTest** — install a single forwarding entry, send a matching packet, verify it exits on the correct port with the right MAC addresses and decremented TTL.
 - **MultiEntryTest** — install multiple LPM entries, send packets matching different prefixes, verify each one routes to the correct port.
 
-The idea is to start with the simplest case (does the default action work?) and build up to more complex scenarios. Each test should be independent — it sets up its own table entries and doesn't depend on state from other tests.
+The idea is to start with the simplest case (does the default action work?) and build up to more complex scenarios. Each test is independent — it sets up its own table entries and doesn't depend on state from other tests.
 
 ## The runptf.sh Script
 
-The test script automates the full cycle:
+The script automates the full lifecycle:
 
-1. Compile the solution P4 program with `p4c`
-2. Start `simple_switch_grpc` with the compiled JSON
-3. Run the PTF tests against the running switch
-4. Clean up processes and build artifacts
+1. **Create veth pairs** — virtual ethernet interfaces that connect test ports to the switch. Each pair has two ends (e.g., veth0/veth1). The switch binds to even-numbered interfaces, PTF sends/receives on odd-numbered ones.
+2. **Compile** the solution P4 program with `p4c` → outputs JSON and p4info
+3. **Start** `simple_switch_grpc` bound to the veth interfaces, with `--no-p4` flag (the program gets loaded via P4Runtime in the test setUp)
+4. **Run PTF tests** — each test connects to the switch, loads the program, writes entries, sends packets, verifies output
+5. **Kill** the switch process
+6. **Delete** the veth interfaces
 
-Tests run against the **solution** files, not the starter code with TODOs. This way they serve as regression tests — if a future compiler update or repo change breaks the expected behavior, the tests catch it.
+The Makefile has a `test` target that calls this script, so users just type `make test`.
 
 ## Key Libraries
 
@@ -70,20 +154,30 @@ Tests run against the **solution** files, not the starter code with TODOs. This 
 | `ptf` | Core test framework — send/receive/verify packets |
 | `ptf.testutils` | Helpers for crafting standard packets (TCP, UDP, etc.) and asserting output |
 | `scapy` | Packet construction and parsing under the hood — PTF uses it internally |
-| `p4runtime_sh` | Python bindings for P4Runtime — used to program table entries into the switch |
+| `p4runtime_lib` | Tutorials repo's own P4Runtime library — connects to switches, builds and writes table entries |
 | `grpc` | Transport layer for P4Runtime communication with `simple_switch_grpc` |
 
-## Dependencies That Live Outside the Tutorials Repo
+## Resolved Dependency Issues
 
-One thing I ran into is that some testing utilities aren't included in the tutorials repo itself:
+My initial approach used `p4runtime_sh` and `p4runtime_shell_utils` from an external repo. After review feedback from the maintainers, I refactored to use `p4runtime_lib` which already exists in the tutorials repo at `utils/p4runtime_lib/`. The veth setup is now handled inside `runptf.sh` itself. No external dependencies needed.
 
-- `p4runtime_shell_utils.py` lives in [jafingerhut/p4-guide/testlib](https://github.com/jafingerhut/p4-guide/tree/master/ptf-tests) — the test script currently hardcodes a path to this
-- `veth` interface setup requires an external script to create the virtual Ethernet pairs that connect test ports to the switch
+The two libraries do the same thing — talk to a switch over P4Runtime — but with different Python APIs:
 
-These are open questions I flagged in the PR for maintainer guidance. In a self-contained test setup, these dependencies would either be vendored into the repo or documented as prerequisites with clear setup instructions.
+```python
+# OLD: p4runtime_sh (external package, dictionary-style API)
+te = sh.TableEntry('MyIngress.ipv4_lpm')(action='MyIngress.ipv4_forward')
+te.match['hdr.ipv4.dstAddr'] = '10.0.1.1/32'
+te.insert()
+
+# NEW: p4runtime_lib (tutorials repo, explicit build + write)
+te = p4info_helper.buildTableEntry(table_name='MyIngress.ipv4_lpm', ...)
+sw.WriteTableEntry(te)
+```
+
+Lesson learned: before pulling in external libraries, check what the repo already provides. The tutorials repo had its own P4Runtime library the whole time — I just didn't know where to look until a maintainer pointed it out.
 
 ## What I Took Away
 
-Writing PTF tests forced me to think about the P4 program from the outside in. Instead of "does this compile?" it's "does a packet with destination 10.0.1.1 actually come out on port 1 with the right MAC?" That's a fundamentally different kind of verification — you're testing the behavior, not just the syntax.
+Writing PTF tests forced me to think about the P4 program from the outside in. Instead of "does this compile?" it's "does a packet with destination 10.0.1.1 actually come out on port 1 with the right MAC?" That's a fundamentally different kind of verification — you're testing the behavior, not just the syntax. It also made me think more systematically about the structure of the P4 program itself — what the expected default behavior is, what each table entry is supposed to do, and where the edge cases or gaps might be (e.g., what happens when TTL hits 0, or when a packet arrives with a non-IPv4 etherType).
 
 The pattern is transferable to other exercises. Each P4 tutorial exercise has a solution with defined expected behavior. The same structure — set up table entries, craft packets, verify output — applies to basic_tunnel, ecn, firewall, and the rest. The main thing that changes is which tables you program and what header fields you assert on.
