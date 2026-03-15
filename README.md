@@ -37,7 +37,9 @@ This is not the GSoC project itself. The actual project work would happen in the
 │   └── vm-setup.md                     # VirtualBox + Ubuntu ARM64 on Apple Silicon
 └── learning/                           # Research notes and papers
     ├── planter_paper.pdf               # Planter SIGCOMM CCR 2024 paper
-    └── planter-notes.md                # Analysis notes on Planter architecture
+    ├── p4-fundamentals.md              # P4 concepts, pipeline, targets, networking fundamentals
+    ├── planter-notes.md                # Planter framework, qualification task, mapping methodologies
+    └── ptf-testing-notes.md            # Notes on PTF testing patterns and PR workflow
 ```
 
 ## Progress
