@@ -7,7 +7,7 @@ Tracking my contributions to p4lang repositories as part of my GSoC 2026 applica
 **Repo:** [p4lang/tutorials](https://github.com/p4lang/tutorials)  
 **PR:** [#730](https://github.com/p4lang/tutorials/pull/730)  
 **Issue:** [#103](https://github.com/p4lang/tutorials/issues/103) — Add unit tests with top-level Makefile (open since 2017)  
-**Status:** Draft, CI checks passing, review requested from @jafingerhut and @Dscano
+**Status:** Draft, CI checks passing, review requested from maintainers
 
 ### What it does
 
@@ -28,7 +28,7 @@ Adds automated PTF-based regression tests for the basic forwarding exercise (`ex
 
 ### Iteration & approach
 
-I reached out to maintainers before finalizing the structure. The first draft worked but depended on external pieces (`~/p4-guide/testlib` and external veth setup). After feedback from @Dscano, I refactored to tutorials-native dependencies (`utils/p4runtime_lib`) and made `runptf.sh` self-contained for interface lifecycle.
+I reached out to maintainers before finalizing the structure. The first draft worked but depended on external pieces (`~/p4-guide/testlib` and external veth setup). After feedback from maintainer, I refactored to tutorials-native dependencies (`utils/p4runtime_lib`) and made `runptf.sh` self-contained for interface lifecycle.
 
 The CI setup then followed naturally: if local test execution is one command, CI should call the same command. That kept behavior consistent between local validation and automated checks.
 
@@ -57,3 +57,7 @@ The CI setup then followed naturally: if local test execution is one command, CI
 - Joined [P4 Zulip #gsoc channel](https://p4lang.zulipchat.com/) and introduced myself
 - Reached out to Davide Scano for guidance on contribution direction — he confirmed Issue #103 was a good fit
 - In direct contact with mentor Peng Qian regarding the qualification task and proposal
+
+## Extra Contributions
+
+- Add on a fix with dependencies of packages in the Planter community after doing the alternative qualification task [#9](https://github.com/In-Network-Machine-Learning/Planter/pull/9)
