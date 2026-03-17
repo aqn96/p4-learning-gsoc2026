@@ -41,7 +41,8 @@ This is not the GSoC project itself. The actual project work would happen in the
     ├── planter_paper.pdf               # Planter SIGCOMM CCR 2024 paper
     ├── p4-fundamentals.md              # P4 concepts, pipeline, targets, networking fundamentals
     ├── planter-notes.md                # Planter framework, qualification task, mapping methodologies
-    └── ptf-testing-notes.md            # Notes on PTF testing patterns and PR workflow
+    ├── ptf-testing-notes.md            # Notes on PTF testing patterns and PR workflow
+    └── testing-cicd-notes.md           # CI/CD, Docker, and dependency management lessons
 ```
 
 ## Progress
