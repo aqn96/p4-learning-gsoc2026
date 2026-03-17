@@ -20,6 +20,8 @@ This is not the GSoC project itself. The actual project work would happen in the
 
 ```
 .
+├── .github/workflows/                   # GitHub Actions CI workflows
+│   └── (in tutorials PR) test-exercises.yml  # PTF CI for exercise 1
 ├── README.md
 ├── 02-tutorials/                       # P4 tutorial exercises
 │   ├── basic-forwarding/               # Exercise 1: Basic IPv4 forwarding
@@ -64,6 +66,7 @@ This is not the GSoC project itself. The actual project work would happen in the
 - [x] Complete end-to-end Planter workflow on BMv2 (Decision Tree Type 4, Iris dataset, 95.56% accuracy)
 - [x] Document findings and results
 - [x] Submit PR to p4lang repository — [PR #730](https://github.com/p4lang/tutorials/pull/730)
+- [x] Add automated CI workflow in PR #730 to run exercise 1 PTF tests on PR/push
 
 ### Phase 4: Application
 
@@ -76,7 +79,7 @@ This is not the GSoC project itself. The actual project work would happen in the
 
 | Contribution | Repo | Status | Description |
 |---|---|---|---|
-| [PR #730](https://github.com/p4lang/tutorials/pull/730) | p4lang/tutorials | Draft | PTF-based regression tests for the basic forwarding exercise, addressing [Issue #103](https://github.com/p4lang/tutorials/issues/103) |
+| [PR #730](https://github.com/p4lang/tutorials/pull/730) | p4lang/tutorials | Draft | PTF-based regression tests for basic forwarding plus a GitHub Actions CI workflow to run `make test` automatically on PRs |
 
 See [05-contributions/README.md](05-contributions/README.md) for details.
 

@@ -176,6 +176,31 @@ sw.WriteTableEntry(te)
 
 Lesson learned: before pulling in external libraries, check what the repo already provides. The tutorials repo had its own P4Runtime library the whole time — I just didn't know where to look until a maintainer pointed it out.
 
+## CI Lessons from PR #730
+
+After wiring this into GitHub Actions, I realized most of the hard part wasn't YAML syntax — it was environment assumptions.
+
+### Questions I kept asking while debugging
+
+1. **Will this run the same way on my machine and on GitHub runners?**  
+   Not automatically. Network-heavy tests (veth creation, BMv2 processes) are sensitive to container privileges and host architecture.
+
+2. **Do I trust an image name because it sounds right, or because I verified it exists?**  
+   I initially used an image name that looked plausible but did not exist publicly. Better workflow: verify first with `docker pull <image>` before committing workflow config.
+
+3. **Should CI call custom commands, or the same command I use locally?**  
+   Same command. The most stable approach was making `make test` the single source of truth and calling it in both places.
+
+4. **How do I make failures useful to reviewers?**  
+   Save logs as artifacts. When CI fails, BMv2/P4Runtime logs are often the fastest way to identify if it's a dependency issue, permission issue, or test logic issue.
+
+### Practical CI notes I want to remember
+
+- Use `pull_request` triggers so checks run on draft PR iterations, not just post-merge pushes.
+- Keep networking permissions explicit (`--privileged` in the container config when veth manipulation is required).
+- Local `act` runs are useful for quick iteration, but on Apple Silicon I should expect architecture friction (`linux/amd64` emulation) and treat GitHub runner results as the final signal.
+
+
 ## What I Took Away
 
 Writing PTF tests forced me to think about the P4 program from the outside in. Instead of "does this compile?" it's "does a packet with destination 10.0.1.1 actually come out on port 1 with the right MAC?" That's a fundamentally different kind of verification — you're testing the behavior, not just the syntax. It also made me think more systematically about the structure of the P4 program itself — what the expected default behavior is, what each table entry is supposed to do, and where the edge cases or gaps might be (e.g., what happens when TTL hits 0, or when a packet arrives with a non-IPv4 etherType).
