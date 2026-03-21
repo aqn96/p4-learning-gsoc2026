@@ -72,3 +72,134 @@ For the GSoC project, Planter needs a new target adapter for the p4c-dpdk backen
 - The p4c-dpdk compiler lives in `p4lang/p4c/backends/dpdk`.
 - P4Runtime API support on DPDK may not be complete. One of the maintainers mentioned in a GitHub issue that he wasn't sure about the state of it. This is a potential blocker I flagged in my proposal's risk section.
 - My plan is to develop and validate everything on BMv2 first (where I already have the full pipeline working), then compile through p4c-dpdk early and often to catch issues before they accumulate.
+
+## Deep Dive: DPDK Adapter Design (from source code reading)
+
+After reading through the BMv2, T4P4S, and bmv2_DPU adapter source 
+code alongside Section 8.3 of the Planter User Manual, I now have a 
+much clearer picture of what the DPDK adapter actually needs to 
+implement. These notes replace the speculation in the section above.
+
+### How Planter target adapters actually work
+
+Every target adapter is a code generator, not a runner. When Planter 
+executes, `run_model.py` and `test_model.py` don't run the switch 
+directly — they write bash scripts and Python test files that do the 
+actual work. This is why the interface is consistent across targets 
+even though the underlying systems are completely different.
+
+The Planter User Manual (Section 8.3) specifies exactly six functions 
+every adapter must implement:
+
+**In `run_model.py`:**
+- `file_names(Planter_config)` — returns work_root, model_test_root, 
+  file_name, test_file_name
+- `add_make_run_model(fname, config)` — generates the bash script that 
+  copies the .p4 file and runs compilation
+- `main(if_using_subprocess)` — entry point called by Planter.py
+
+**In `test_model.py`:**
+- `write_common_test_classification(fname, Planter_config)` — generates 
+  Scapy packet test for classification models
+- `write_common_test_dimension_reduction(fname, Planter_config)` — for 
+  regression/dimension reduction models (Linear Regression hooks here)
+- `finish_runtime(Planter_config)` — loads table entries to the target
+- `generate_test_file(config_file)` — calls the appropriate test writer
+- `main(...)` — entry point
+
+### Folder structure decision
+
+Looking at all targets:
+- BMv2: `compile/` + `software/` (needs Mininet for network emulation)
+- bmv2_DPU: `compile/` + `software/` (same as BMv2, just on DPU hardware)
+- T4P4S: `compile/` only (IS the software environment)
+- Tofino: `compile_auto/` only (hardware ASIC)
+- alveo_u280: `behavioral/` + `compile/` + `hardware/`
+
+DPDK SWX should follow T4P4S — `compile/` only. The DPDK pipeline 
+runs directly on the host Linux system so there is no need for a 
+separate Mininet emulation environment.
+
+### What changes from BMv2 in run_model.py
+
+BMv2 `add_make_run_model()` generates:
+```bash
+p4c-bm2-ss --p4v 16 --p4runtime-files build/<model>.p4info.txt \
+    -o build/<model>.json <model>.p4
+sudo simple_switch_grpc -i 0@veth0 -i 1@veth1 <model>.json
+```
+
+DPDK `add_make_run_model()` will generate:
+```bash
+p4c-dpdk --arch psa <model>.p4 -o <model>.spec
+sudo dpdk-pipeline -l 1 -- -s <model>.spec
+```
+
+Key difference: BMv2 produces `.json`, DPDK produces `.spec`. These 
+are completely different artifact formats consumed by different runtimes.
+
+### PSA architecture already exists — no rewrite needed
+
+Planter already has `src/architectures/psa/p4_generator.py`. Reading 
+the source confirms it generates a complete PSA-compliant P4 file 
+with ingress parser, ingress control, egress parser (stub), egress 
+control (stub), and `PSA_Switch()` main instantiation.
+
+The egress blocks are stubs — they just `transition accept` immediately. 
+This is fine because Planter's ML inference runs entirely in ingress. 
+And p4c-dpdk is ingress-only by default anyway. The two align perfectly.
+
+This means the DPDK adapter does NOT need a new architecture module. 
+It reuses PSA as-is.
+
+### finish_runtime_dpdk() — the novel piece
+
+Every existing Planter target uses BMv2's p4runtime gRPC for table 
+loading. Looking at `finish_runtime()` in BMv2 test_model.py:
+```python
+Runtime["target"] = "bmv2"
+Runtime["p4info"] = "build/<model>.p4.p4info.txt"
+Runtime["bmv2_json"] = "build/<model>.json"
+Runtime["table_entries"] = Table_entries["table_entries"]
+json.dump(Runtime, open(model_test_root+'/s1-runtime.json', 'w'))
+```
+
+DPDK SWX has no p4runtime server. Table entries go through the 
+DPDK pipeline CLI using `table add` commands. `finish_runtime_dpdk()` 
+needs to read `Tables/Runtime.json` and translate each entry into 
+the equivalent DPDK SWX CLI format. This translation layer has no 
+precedent in any existing Planter target — it is the core novel 
+engineering contribution of the adapter.
+
+### test_model.py — confirmed nearly identical to BMv2
+
+Compared test_model.py across all software switch targets:
+
+| Target | Scapy srp1() | Table loading | Interface |
+|---|---|---|---|
+| BMv2 software | yes | simple_switch_CLI | veth |
+| bmv2_DPU software | yes | simple_switch_CLI | standard Linux |
+| T4P4S | yes | p4runtime via t4p4s.sh | eth0 |
+| Tofino | NO — SDE stub | SDE | hardware |
+| DPDK (new) | yes | finish_runtime_dpdk() | tap PMD |
+
+The Planter custom header (ethertype 0x1234, IntField features, 
+IntField result) is identical across all Scapy-based targets. 
+DPDK's tap PMD exposes a Linux interface so `srp1()` works unchanged.
+
+Linear Regression specifically hooks into 
+`write_common_test_dimension_reduction()` which already exists and 
+uses Pearson's correlation instead of classification accuracy. No 
+new testing interface needed for regression.
+
+### Known p4c-dpdk constraints (verified from README)
+
+- Egress pipeline: ingress-only by default, `--enableEgress` flag 
+  needed for non-empty egress (not needed for Planter models)
+- Field sizes: must be multiples of 8 bits — Planter header uses 
+  IntField (32-bit) and XByteField (8-bit), all aligned
+- Counters/meters: non-standard API, but Planter classification 
+  models don't use these externs
+- No p4runtime server: table loading must go through DPDK SWX CLI
+
+None of these block the core deliverables.
