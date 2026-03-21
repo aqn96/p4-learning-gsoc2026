@@ -70,7 +70,6 @@ For the GSoC project, Planter needs a new target adapter for the p4c-dpdk backen
 
 - DPDK uses the PSA (Portable Switch Architecture) model, not v1model. The generated P4 code would need different architecture declarations.
 - The p4c-dpdk compiler lives in `p4lang/p4c/backends/dpdk`.
-- P4Runtime API support on DPDK may not be complete. One of the maintainers mentioned in a GitHub issue that he wasn't sure about the state of it. This is a potential blocker I flagged in my proposal's risk section.
 - My plan is to develop and validate everything on BMv2 first (where I already have the full pipeline working), then compile through p4c-dpdk early and often to catch issues before they accumulate.
 
 ## Deep Dive: DPDK Adapter Design (from source code reading)
