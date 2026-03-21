@@ -58,9 +58,11 @@ This is not the GSoC project itself. The actual project work would happen in the
 ### Phase 2: Project Exploration
 
 - [x] Read Planter paper (ACM SIGCOMM CCR 2024)
-- [x] Study Planter user manual and codebase
+- [x] Study Planter user manual and codebase (Section 8.3 — target adapter interface)
+- [x] Read BMv2 and T4P4S adapter source code (run_model.py, test_model.py)
+- [x] Study p4c-dpdk backend source (backend.cpp, midend.cpp, dpdkArch.cpp)
 - [x] Explore P4Pi platform and documentation
-- [x] Study p4c-dpdk backend
+- [x] Confirmed PSA architecture module compatibility with p4c-dpdk target
 
 ### Phase 3: Qualification Task
 
@@ -74,13 +76,17 @@ This is not the GSoC project itself. The actual project work would happen in the
 - [x] Draft GSoC proposal
 - [x] Email mentor (Peng Qian) with draft
 - [x] Join P4 Zulip #gsoc channel
-- [ ] Submit final application through GSoC website
+- [x] Iterated proposal with mentor feedback — added DPDK adapter design,
+  finish_runtime_dpdk() translation layer, and pipeline diagram
+- [x] Submit final application through GSoC website
 
 ## Open-Source Contributions
 
 | Contribution | Repo | Status | Description |
 |---|---|---|---|
-| [PR #730](https://github.com/p4lang/tutorials/pull/730) | p4lang/tutorials | Draft | PTF-based regression tests for basic forwarding plus a GitHub Actions CI workflow to run `make test` automatically on PRs |
+| PR #730 | p4lang/tutorials | Merged | PTF-based regression tests for basic forwarding (DropTest, FwdTest, MultiEntryTest) plus GitHub Actions CI workflow |
+| PR #9 | In-Network-Machine-Learning/Planter | Open | Fix plt.style.use('seaborn') → 'seaborn-v0_8' for matplotlib 3.6+ compatibility across 15 table_generator.py files |
+| PR #7 review | In-Network-Machine-Learning/Planter | Contributed | Independently verified pandas .max()[0] → .max().iloc[0] fix and identified 6 additional .min()[0] instances |
 
 See [05-contributions/README.md](05-contributions/README.md) for details.
 
