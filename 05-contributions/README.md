@@ -73,6 +73,53 @@ between local validation and automated checks.
 
 ---
 
+## PR #733 — PTF Tests for Basic Tunneling Exercise
+
+**Repo:** [p4lang/tutorials](https://github.com/p4lang/tutorials)
+**PR:** [#733](https://github.com/p4lang/tutorials/pull/733)
+**Issue:** [#103](https://github.com/p4lang/tutorials/issues/103)
+**Status:** Open (ready for review, checks passing)
+
+### What it does
+Adds automated PTF-based regression tests for the `basic_tunnel`
+exercise (`exercises/basic_tunnel`) against `solution/basic_tunnel.p4`.
+This extends the test pattern from PR #730 to tunnel-specific behavior.
+
+### What's included
+- `ptf/basic_tunnel.py` — Seven tests:
+  - **Ipv4DropOnMissTest** — verifies plain IPv4 packets drop with
+    no IPv4 table entries
+  - **Ipv4ForwardTest** — verifies IPv4 forwarding, MAC rewrite, and
+    TTL decrement
+  - **TunnelForwardTest** — verifies tunneled forwarding by `dst_id`
+  - **TunnelDropOnMissTest** — verifies tunneled packets drop when
+    no tunnel entry exists
+  - **MixedTrafficTest** — verifies IPv4 and tunnel traffic paths stay
+    independent
+  - **TunnelUnknownProtoTest** — verifies forwarding depends on
+    `dst_id` even with unexpected `proto_id`
+  - **TtlBoundaryTest** — verifies TTL boundary decrement behavior
+- `runptf.sh` — compiles solution, starts `simple_switch_grpc`,
+  runs tests, and cleans up interfaces/processes
+- `Makefile` — adds `make test` target
+- `.gitignore` — excludes generated artifacts (`build/`, logs, pcap)
+- `.github/workflows/test-exercises.yml` — refactored to matrix
+  strategy, concurrency, and timeout controls
+- Cleanup update: removed `make test` mention from `exercises/basic/README.md`
+  per maintainer guidance (contributor test flow vs student exercise docs)
+
+### Workflow lessons from this PR cycle
+1. Keep issue threads updated when moving from exercise 1 to exercise 2,
+   so maintainers can track progress and avoid duplicate work.
+2. Use `act` for quick feedback, but treat GitHub Actions as the final
+   source of truth for networking-heavy jobs.
+3. Handle DCO/sign-off expectations early (`git commit -s`), especially
+   when rebasing iterative test commits.
+4. Prefer tutorial-native dependencies and self-contained scripts to reduce
+   setup friction for reviewers and future contributors.
+
+---
+
 ## PR #9 — Fix matplotlib deprecation in Planter
 
 **Repo:** 

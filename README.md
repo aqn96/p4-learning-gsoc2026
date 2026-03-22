@@ -21,7 +21,7 @@ This is not the GSoC project itself. The actual project work would happen in the
 ```
 .
 ├── .github/workflows/                   # GitHub Actions CI workflows
-│   └── (in tutorials PR) test-exercises.yml  # PTF CI for exercise 1
+│   └── (in tutorials PR) test-exercises.yml  # PTF CI for exercises 1 + 2
 ├── README.md
 ├── 02-tutorials/                       # P4 tutorial exercises
 │   ├── basic-forwarding/               # Exercise 1: Basic IPv4 forwarding
@@ -35,8 +35,9 @@ This is not the GSoC project itself. The actual project work would happen in the
 │   └── screenshots/                    # Evidence screenshots
 ├── 05-contributions/                   # Open-source contributions to p4lang
 │   └── README.md                       # Summary of PRs and community engagement
-├── docs/                               # Environment setup docs
-│   └── vm-setup.md                     # VirtualBox + Ubuntu ARM64 on Apple Silicon
+├── docs/                               # Environment setup and workflow docs
+│   ├── vm-setup.md                     # VirtualBox + Ubuntu ARM64 on Apple Silicon
+│   └── contribution-workflow-ex2.md    # Exercise 2 PR workflow and review lessons
 └── learning/                           # Research notes and papers
     ├── planter_paper.pdf               # Planter SIGCOMM CCR 2024 paper
     ├── p4-fundamentals.md              # P4 concepts, pipeline, targets, networking fundamentals
@@ -70,6 +71,8 @@ This is not the GSoC project itself. The actual project work would happen in the
 - [x] Document findings and results
 - [x] Submit PR to p4lang repository — [PR #730](https://github.com/p4lang/tutorials/pull/730)
 - [x] Add automated CI workflow in PR #730 to run exercise 1 PTF tests on PR/push
+- [x] Submit follow-up PR for exercise 2 test coverage — [PR #733](https://github.com/p4lang/tutorials/pull/733)
+- [ ] Complete maintainer review cycle for PR #733 (currently open, ready for review, checks passing)
 
 ### Phase 4: Application
 
@@ -85,6 +88,7 @@ This is not the GSoC project itself. The actual project work would happen in the
 | Contribution | Repo | Status | Description |
 |---|---|---|---|
 | PR #730 | p4lang/tutorials | Merged | PTF-based regression tests for basic forwarding (DropTest, FwdTest, MultiEntryTest) plus GitHub Actions CI workflow |
+| PR #733 | p4lang/tutorials | Open (checks passing, ready for review) | PTF-based regression tests for basic_tunnel (7 tests), CI workflow matrix+concurrency refactor, and maintainer-requested README cleanup |
 | PR #9 | In-Network-Machine-Learning/Planter | Open | Fix plt.style.use('seaborn') → 'seaborn-v0_8' for matplotlib 3.6+ compatibility across 15 table_generator.py files |
 | PR #7 review | In-Network-Machine-Learning/Planter | Contributed | Independently verified pandas .max()[0] → .max().iloc[0] fix and identified 6 additional .min()[0] instances |
 

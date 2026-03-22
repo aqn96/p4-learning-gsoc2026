@@ -1,6 +1,6 @@
 # Testing (CI/CD), Docker, and Dependency Management — Learning Notes
 
-These are my notes from turning local PTF tests into a repeatable CI workflow during PR #730 in `p4lang/tutorials`.
+These are my notes from turning local PTF tests into a repeatable CI workflow during PR #730 and PR #733 in `p4lang/tutorials`.
 
 ## GitHub Actions (CI) — What clicked for me
 
@@ -40,6 +40,27 @@ For P4 test flows (veth, BMv2, PTF), Docker is not just packaging; it's executio
 1. Run `make test` in the same environment used for development.
 2. Run `act pull_request` for fast CI syntax/environment sanity.
 3. Treat GitHub Actions runner results as the final gate.
+
+## CI structure refinements from exercise 2
+
+In PR #733, I refactored workflow structure to improve maintainability:
+
+- matrix strategy instead of duplicating similar jobs
+- `concurrency` with `cancel-in-progress` to avoid stale CI runs
+- explicit job `timeout-minutes` to prevent hung networking jobs
+
+These were small YAML changes, but they reduced repetition and made CI
+behavior more predictable during iterative pushes.
+
+## Compliance lesson: DCO should be first-pass clean
+
+Even when tests pass, contributor workflows can still block merge.
+I hit this with DCO/sign-off requirements while iterating on PR #733.
+
+My new default on repos that enforce DCO:
+
+- always commit with `git commit -s`
+- if needed, remediate quickly with `git rebase --signoff`
 
 ## Package Dependencies — How I think about them now
 

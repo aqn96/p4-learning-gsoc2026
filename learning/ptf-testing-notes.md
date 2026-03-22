@@ -176,7 +176,7 @@ sw.WriteTableEntry(te)
 
 Lesson learned: before pulling in external libraries, check what the repo already provides. The tutorials repo had its own P4Runtime library the whole time — I just didn't know where to look until a maintainer pointed it out.
 
-## CI Lessons from PR #730
+## CI Lessons from PR #730 and PR #733
 
 After wiring this into GitHub Actions, I realized most of the hard part wasn't YAML syntax — it was environment assumptions.
 
@@ -199,6 +199,37 @@ After wiring this into GitHub Actions, I realized most of the hard part wasn't Y
 - Use `pull_request` triggers so checks run on draft PR iterations, not just post-merge pushes.
 - Keep networking permissions explicit (`--privileged` in the container config when veth manipulation is required).
 - Local `act` runs are useful for quick iteration, but on Apple Silicon I should expect architecture friction (`linux/amd64` emulation) and treat GitHub runner results as the final signal.
+
+## What changed in exercise 2 (basic_tunnel)
+
+PR #733 expanded test coverage from basic IPv4 forwarding to mixed
+IPv4+tunnel behavior and edge cases:
+
+- `Ipv4DropOnMissTest`
+- `Ipv4ForwardTest`
+- `TunnelForwardTest`
+- `TunnelDropOnMissTest`
+- `MixedTrafficTest`
+- `TunnelUnknownProtoTest`
+- `TtlBoundaryTest`
+
+Two important behavior checks in that set:
+
+1. **Traffic-path separation** (`MixedTrafficTest`)  
+   Ensures tunnel logic does not accidentally override plain IPv4 flows
+   unless tunnel headers are actually present.
+
+2. **Header-field trust boundary** (`TunnelUnknownProtoTest`)  
+   Documents the current design choice: tunnel forwarding keys on `dst_id`
+   even when `proto_id` is unexpected. This is a useful regression guard
+   for parser/apply control logic.
+
+## Maintainer feedback I want to keep applying
+
+- Keep student-facing exercise README text focused on tutorial outcomes.
+- Put contributor/maintainer test workflows in dedicated docs or PR text.
+- Keep PR descriptions explicit about exact test names and what each test
+  proves; this speeds up review and makes long-term maintenance easier.
 
 
 ## What I Took Away

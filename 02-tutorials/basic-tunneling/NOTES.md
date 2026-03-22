@@ -55,6 +55,20 @@ All three test cases worked:
 2. `./send.py 10.0.2.2 "P4 is very cool language" --dst_id 2` — tunneled, h2 receives it with tunnel header visible
 3. `./send.py 10.0.3.3 "P4 is very cool language" --dst_id 2` — IP says h3 but tunnel says h2. h2 gets it anyway. This proves the tunnel overrides IP routing.
 
+For contribution/regression testing work, I also implemented a PTF suite in
+`p4lang/tutorials` PR #733 with seven automated tests:
+
+- `Ipv4DropOnMissTest`
+- `Ipv4ForwardTest`
+- `TunnelForwardTest`
+- `TunnelDropOnMissTest`
+- `MixedTrafficTest`
+- `TunnelUnknownProtoTest`
+- `TtlBoundaryTest`
+
+This complements manual `send.py` verification by pinning expected behavior in
+repeatable tests for CI and future compiler/runtime upgrades.
+
 ## Learnings
 
 - Tunneling is the same fundamental concept behind VPNs, MPLS, VXLAN — wrap, route on the wrapper, unwrap. Once you get that pattern everything else is just variations on it.
