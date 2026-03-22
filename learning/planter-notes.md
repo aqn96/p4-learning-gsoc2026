@@ -202,3 +202,76 @@ new testing interface needed for regression.
 - No p4runtime server: table loading must go through DPDK SWX CLI
 
 None of these block the core deliverables.
+
+## Generalized engineering mental models (non-proposal specific)
+
+These are reusable patterns I want to keep for future P4/Planter work, independent
+of any single proposal or roadmap.
+
+### 1) Adapter-first architecture model
+
+When integrating a framework with a new P4 target, separate the problem into three
+stable layers:
+
+1. **Program generation layer** — produces target-appropriate P4 source.
+2. **Runtime translation layer** — converts framework runtime/table JSON into the
+   target's control-plane commands/API.
+3. **Validation harness layer** — packet I/O tests that verify behavior on the target.
+
+This split helps me isolate where incompatibilities actually live. In practice, most
+new-target risk sits in runtime translation, not in test packet generation.
+
+### 2) Preserve test interface, swap backend
+
+A strong portability strategy is to keep the packet-test interface (Scapy/PTF-style
+send + assert) unchanged while only swapping:
+
+- compile command/toolchain
+- runtime loader
+- interface binding details
+
+If the test harness contract stays stable, backend migration becomes mostly a target
+adapter problem instead of a full test rewrite problem.
+
+### 3) Artifact boundary awareness
+
+Compiler outputs and runtime metadata are separate concerns and should be validated
+separately:
+
+- compiled target artifact (e.g., backend-specific executable spec/JSON)
+- control-plane metadata/runtime tables (e.g., table-entry JSON)
+
+Debugging is much faster when I ask: "Did compile fail?", "Did runtime translation
+fail?", or "Did packet behavior fail?" rather than treating these as one black box.
+
+### 4) Capability-aware model mapping
+
+Map algorithm style to target capability instead of forcing one mapping everywhere:
+
+- targets with limited arithmetic often rely more on lookup encoding
+- software targets may allow more native arithmetic paths
+
+The key principle: choose the representation that matches the target's compute model,
+then evaluate table size, precision, and throughput tradeoffs explicitly.
+
+### 5) Progressive validation gates
+
+Use a staged verification path before large integration changes:
+
+1. validate with a known-good baseline model/program
+2. validate translation layer correctness on small cases
+3. run end-to-end packet validation
+4. only then expand algorithm/test scope
+
+This de-risks integration and gives clear rollback points when something breaks.
+
+### 6) Risk decomposition for open-source delivery
+
+For larger cross-repo efforts, categorize work into:
+
+- **core path** (must-work foundation)
+- **parallel value path** (useful independently if core path blocks)
+- **stretch path** (optional after core path is stable)
+
+This framing improves contribution resilience and keeps progress meaningful even when
+one dependency slips.

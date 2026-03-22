@@ -49,6 +49,23 @@ The same P4 source code can be compiled for different targets:
 ### Typical development workflow
 BMv2 + Mininet (develop/test) → eBPF/DPDK (test with real traffic) → ASIC (production deployment)
 
+### Portability mental model across targets
+
+When moving a P4 workflow between targets, I now treat it as three mostly independent
+portability checks:
+
+1. **Language/architecture compatibility**  
+   Does the P4 architecture and extern usage fit the target compiler/runtime model?
+
+2. **Control-plane compatibility**  
+   Can runtime table/state programming be expressed through the target's APIs/CLI?
+
+3. **Behavioral equivalence**  
+   Do packet-level results stay consistent under the same test vectors?
+
+If I check in that order, I can usually identify failures faster and avoid mixing
+compile-time, control-plane, and data-plane issues together.
+
 ## Networking Fundamentals
 
 ### MAC Addresses vs IP Addresses
