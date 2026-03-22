@@ -46,6 +46,27 @@ This is not the GSoC project itself. The actual project work would happen in the
     └── testing-cicd-notes.md           # CI/CD, Docker, and dependency management lessons
 ```
 
+## Learning Notes Quick Index
+
+Use this as a fast navigation map for the `learning/` folder:
+
+- [`learning/p4-fundamentals.md`](learning/p4-fundamentals.md)
+  - P4 pipeline and target mental model
+  - Target portability checks (architecture, control plane, behavior)
+  - Networking foundations and Planter context
+- [`learning/planter-notes.md`](learning/planter-notes.md)
+  - Three-matrix validation workflow
+  - Mapping methodology notes (DM/EB/LB)
+  - Adapter design patterns and generalized engineering mental models
+- [`learning/ptf-testing-notes.md`](learning/ptf-testing-notes.md)
+  - PTF + P4Runtime flow (Python harness to switch behavior)
+  - `runptf.sh` lifecycle and test structure
+  - Exercise-2 regression test expansion and maintainer feedback lessons
+- [`learning/testing-cicd-notes.md`](learning/testing-cicd-notes.md)
+  - CI workflow design for networking tests
+  - CI vs CI/CD terminology in BMv2-based pipelines
+  - DCO, dependency hygiene, and reproducibility checklists
+
 ## Progress
 
 ### Phase 1: Environment & Foundations
