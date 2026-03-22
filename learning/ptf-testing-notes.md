@@ -6,6 +6,44 @@ Notes from building automated tests for the p4lang/tutorials exercises.
 
 PTF (Packet Test Framework) is a Python-based testing framework for data plane programs. It lets you send packets into a software switch, then verify what comes out the other side. Think of it as unit testing but for network behavior — you craft a specific input packet, send it, and assert that the output packet has the right headers, lands on the right port, or gets dropped as expected.
 
+## Mental model: Python test to switch behavior
+
+This is the concrete flow I keep in my head:
+
+```
+Python PTF test
+    |
+    | uses p4runtime_lib (helper + bmv2 + switch modules)
+    v
+P4Runtime API over gRPC
+    |
+    | SetForwardingPipelineConfig + WriteTableEntry
+    v
+simple_switch_grpc (BMv2)
+    |
+    | executes compiled basic_tunnel.p4 program
+    v
+packet forwarding behavior observed by PTF assertions
+```
+
+Two generated artifacts are key:
+
+- `*.json` (BMv2 JSON) — compiled data-plane program used by BMv2
+- `*.p4info.txtpb` — schema/metadata used by P4Runtime for table/action IDs
+
+`p4runtime_lib.helper.P4InfoHelper` bridges human-readable names (e.g.
+`MyIngress.ipv4_lpm`) to the numeric IDs in the P4Info protobuf. Without this,
+you would have to build raw protobuf/gRPC messages manually.
+
+In practical test code, Python is doing three jobs:
+
+1. **Control plane programming** (insert table entries)
+2. **Traffic generation** (send packets with PTF/Scapy)
+3. **Behavior validation** (verify output packet/port/drop)
+
+So the tests are not validating Python logic; Python is just the harness for
+validating the P4 program behavior end-to-end.
+
 ## The Full Testing Flow
 
 When you run `make test`, here's what happens end to end:

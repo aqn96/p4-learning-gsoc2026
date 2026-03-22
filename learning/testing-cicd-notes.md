@@ -14,6 +14,22 @@ At first, CI felt like "just write YAML." In practice, it's about turning assump
 
 The key insight: a CI pass means "this can be reproduced from scratch," not just "it worked once on my VM."
 
+### CI vs CI/CD wording for this workflow
+
+For tutorials PRs, the strict term is **CI**:
+
+- compile P4
+- deploy to BMv2 software switch inside test environment
+- run automated PTF regression tests
+
+There is deployment happening, but it is deployment to a test target (BMv2),
+not production hardware. In conversation and resumes, "CI/CD" is commonly used
+as shorthand, but if I need precise language:
+
+- **CI (precise):** automatic build + deploy-to-test-target + verify on PR
+- **CD (production sense):** automatic promotion to real hardware environments
+  (e.g., ASIC targets), which this tutorial pipeline does not do
+
 ### What I now check before opening a PR
 
 1. Is there a single command (`make test`) that represents truth for both local and CI?
