@@ -98,7 +98,7 @@ Use this as a fast navigation map for the `learning/` folder:
 ### Phase 4: Application
 
 - [x] Draft GSoC proposal
-- [x] Email mentor (Peng Qian) with draft
+- [x] Email mentor with draft
 - [x] Join P4 Zulip #gsoc channel
 - [x] Iterated proposal with mentor feedback — added DPDK adapter design,
   finish_runtime_dpdk() translation layer, and pipeline diagram
